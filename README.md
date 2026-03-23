@@ -42,6 +42,8 @@ You'll need accounts and API keys from the following services before getting sta
 |---------|--------------|---------|------------|
 | **Contextual AI** | Document storage + RAG agent | [contextual.ai](https://contextual.ai) | Yes |
 | **Docker Desktop** | Runs OpenClaw in an isolated container | [docker.com](https://www.docker.com/products/docker-desktop/) | Yes |
+| **Anthropic** | Claude-powered OpenClaw agent reasoning | [console.anthropic.com](https://console.anthropic.com) | Credit required |
+| **Brave Search** | Web search tool for the OpenClaw agent | [brave.com/search/api](https://brave.com/search/api/) | Yes (1 query/sec, 2000/month) |
 
 > **Note:** EDGAR RSS scraping is free and requires no API key. This is the primary data source for SEC filings.
 
@@ -49,9 +51,7 @@ You'll need accounts and API keys from the following services before getting sta
 
 | Service | What it's for | Sign up | Free tier? |
 |---------|--------------|---------|------------|
-| **Brave Search** | Supplemental web scraping for SEC filings | [brave.com/search/api](https://brave.com/search/api/) | Yes (1 query/sec, 2000/month) |
-| **Telegram** | Receive briefings on your phone | [telegram.org](https://telegram.org) | Yes |
-| **Anthropic** | OpenClaw agent reasoning | [console.anthropic.com](https://console.anthropic.com) | Credit required |
+| **Telegram** | Chat with the agent from your phone | [telegram.org](https://telegram.org) | Yes |
 
 ---
 
@@ -70,17 +70,21 @@ cd sec-openclaw
 cp example.env .env
 ```
 
-Open `.env` and fill in your keys:
+Open `.env` and fill in the three keys you need for the workshop:
 
 ```env
-# Required
+# BRING THESE KEYS — required before we start
 CONTEXTUAL_API_KEY=your-contextual-api-key
-
-# Optional
-BRAVE_API_KEY=your-brave-api-key
 ANTHROPIC_API_KEY=your-anthropic-api-key
-TELEGRAM_BOT_TOKEN=your-bot-token
-TELEGRAM_CHAT_ID=your-chat-id
+BRAVE_API_KEY=your-brave-api-key
+
+# AUTO-POPULATED — the notebook sets these, leave blank
+DATASTORE_ID=
+AGENT_ID=
+
+# OPTIONAL — we'll set up Telegram during Part 4 if time permits
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
 ```
 
 See [Telegram Setup](#telegram-setup) below for how to get the bot token and chat ID.
