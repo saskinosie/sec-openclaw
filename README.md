@@ -2,6 +2,8 @@
 
 An automated SEC filing monitor powered by OpenClaw and [Contextual AI](https://contextual.ai).
 
+Try it out and access the shared tenant, free for all of today's participants to use, at [https://app.contextual.ai/openclaw-hackday](https://app.contextual.ai/openclaw-hackday) - you should be added via your email address that you registered with, but ping us on the HackerSquad discord if you can't find it
+
 **OpenClaw** runs in a Docker container on a daily schedule, scraping recent SEC filings via [EDGAR RSS feeds](https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&type=&dateb=&owner=include&count=40&search_text=&action=getcompany) (with optional [Brave Search](https://brave.com/search/api/) supplement), converting them to PDFs, and uploading them to a Contextual AI datastore. You query the agent from a Jupyter notebook whenever you want insights — and optionally get briefings sent to your phone via Telegram.
 
 ## Architecture
