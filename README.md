@@ -40,9 +40,9 @@ You'll need accounts and API keys from the following services before getting sta
 
 | Service | What it's for | Sign up | Free tier? |
 |---------|--------------|---------|------------|
-| **Contextual AI** | Document storage + RAG agent | [contextual.ai](https://contextual.ai) | Yes |
+| **Contextual AI** | Document storage + RAG agent | [contextual.ai](https://contextual.ai) | Yes (auto-provisioned with event registration) |
 | **Docker Desktop** | Runs OpenClaw in an isolated container | [docker.com](https://www.docker.com/products/docker-desktop/) | Yes |
-| **Anthropic** | Claude-powered OpenClaw agent reasoning | [console.anthropic.com](https://console.anthropic.com) | Credit required |
+| **OpenAI** | ChatGPT-powered OpenClaw agent reasoning | [platform.openai.com](https://platform.openai.com) | Credit required |
 | **Brave Search** | Web search tool for the OpenClaw agent | [brave.com/search/api](https://brave.com/search/api/) | Yes (1 query/sec, 2000/month) |
 
 > **Note:** EDGAR RSS scraping is free and requires no API key. This is the primary data source for SEC filings.
@@ -60,11 +60,21 @@ You'll need accounts and API keys from the following services before getting sta
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/saskinosie/sec-openclaw.git
-cd sec-openclaw
+git clone https://github.com/ContextualAI/openclaw_hackday.git
+cd openclaw_hackday
 ```
 
-### 2. Set up API keys
+### 2. Activate your Contextual AI workspace
+
+After registration, you'll receive an email inviting you to the Contextual AI workspace. **You must click the link in that email to activate your workspace** before you can log in. Once activated:
+
+1. Log in to your workspace at [contextual.ai](https://contextual.ai) using the same email you registered for the event
+2. On the main workspace page, click **API Keys** in the left-hand tray at the bottom
+3. Click the **Create** button (top right)
+4. Give your API key a name and click **Create**
+5. **Copy your API key immediately** — you won't be able to retrieve it after closing the window. If you lose it, you'll need to create a new one.
+
+### 3. Set up API keys
 
 ```bash
 cp example.env .env
@@ -75,7 +85,7 @@ Open `.env` and fill in the three keys you need for the workshop:
 ```env
 # BRING THESE KEYS — required before we start
 CONTEXTUAL_API_KEY=your-contextual-api-key
-ANTHROPIC_API_KEY=your-anthropic-api-key
+OPENAI_API_KEY=your-openai-api-key
 BRAVE_API_KEY=your-brave-api-key
 
 # AUTO-POPULATED — the notebook sets these, leave blank
@@ -89,7 +99,7 @@ TELEGRAM_CHAT_ID=
 
 See [Telegram Setup](#telegram-setup) below for how to get the bot token and chat ID.
 
-### 3. Set up the Python environment
+### 4. Set up the Python environment
 
 ```bash
 python -m venv .venv
@@ -97,11 +107,17 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Make sure Docker Desktop is running
+### 5. Make sure Docker is running
 
-Open Docker Desktop (or confirm it's running with `docker info`). OpenClaw runs entirely inside a container — nothing gets installed on your machine.
+**On Docker Desktop (Mac/Windows):** Open Docker Desktop or confirm with `docker info`.
 
-### 5. Run the notebook
+**On the workshop IDE (Hacker Squad):** Docker Desktop isn't available — start the daemon manually:
+```bash
+sudo service docker start
+```
+The notebook uses `sudo docker-compose` for all Docker commands since the `coder` user doesn't have access to `/var/run/docker.sock` by default. The IDE has Docker Compose v1 (`docker-compose` with a hyphen), not the v2 plugin (`docker compose`).
+
+### 6. Run the notebook
 
 Open `sec.ipynb` in VS Code (or Jupyter) and run through the parts in order:
 
@@ -109,7 +125,7 @@ Open `sec.ipynb` in VS Code (or Jupyter) and run through the parts in order:
 |------|-------------|----------|
 | **Part 1** | Creates the Contextual AI datastore and agent | Once (first time setup) |
 | **Part 2** | Builds and launches the OpenClaw Docker container | Each session |
-| **Part 3** | Agent queries + Claude comparison | Demo showcase |
+| **Part 3** | Agent queries + ChatGPT comparison | Demo showcase |
 | **Part 4** | Telegram integration (4a: one-shot, 4b: SEC chat bot, 4c: full OpenClaw agent) | Optional |
 
 ---
@@ -120,22 +136,24 @@ OpenClaw runs in Docker to keep scraping isolated from your machine. It starts s
 
 ```bash
 # Build (required after changing scrape.py)
-docker compose build --no-cache openclaw
+sudo docker-compose build --no-cache openclaw
 
 # Start the container
-docker compose up -d --build
+sudo docker-compose up -d --build
 
 # Watch the logs
-docker compose logs -f openclaw
+sudo docker-compose logs -f openclaw
 
 # Trigger a manual scrape
-docker compose exec openclaw python scrape.py --once
+sudo docker-compose exec openclaw python scrape.py --once
 
 # Stop everything
-docker compose down
+sudo docker-compose down
 ```
 
 > **Note:** If you change `scrape.py`, you must rebuild with `--no-cache` or Docker will use the cached image with the old code.
+>
+> **Note:** The workshop IDE uses Docker Compose v1 (`docker-compose` with a hyphen) and requires `sudo`. If you're on Docker Desktop with Compose v2, you can use `docker compose` (no hyphen) without `sudo`. The notebook auto-detects your environment and sets the correct command automatically — no manual changes needed.
 
 ---
 
@@ -203,6 +221,8 @@ sec_demo/
 
 | Resource | Link |
 |----------|------|
+| Getting Started | https://docs.contextual.ai/quickstarts/getting-started |
+| Examples & Demos | https://docs.contextual.ai/examples/overview-demos |
 | Documentation | https://docs.contextual.ai/ |
 | Python SDK | https://github.com/ContextualAI/contextual-client-python |
 | Node SDK | https://github.com/ContextualAI/contextual-client-node |
@@ -211,6 +231,8 @@ sec_demo/
 | Datastore Sync | https://github.com/ContextualAI/datastore-sync |
 | Demo Site | https://demo.contextual.ai/ |
 | GitHub Org | https://github.com/ContextualAI |
+
+> **Tip:** The search bar at the top of the [docs page](https://docs.contextual.ai/) is itself a Contextual AI agent — it understands the documentation better than keyword search. Use it to get precise answers about the SDK, APIs, and platform features.
 
 ### Tools & Frameworks
 
@@ -227,6 +249,7 @@ sec_demo/
 
 | Problem | Fix |
 |---------|-----|
+| Docker: `permission denied` on `/var/run/docker.sock` | Your user doesn't have access to the Docker socket. Either prefix commands with `sudo` (e.g. `sudo docker ps`) or add your user to the docker group and start a new shell: `sudo usermod -aG docker $USER && newgrp docker` |
 | `429 Too Many Requests` from Brave | You're hitting the rate limit (1 req/sec on free tier). Wait a minute and retry. The scraper has built-in delays. |
 | Docker build uses cached `scrape.py` | Run `docker compose build --no-cache openclaw` to force a fresh copy. |
 | `QueryResource object is not callable` | Make sure you're using `client.agents.query.create(...)`, not `client.agents.query(...)`. |

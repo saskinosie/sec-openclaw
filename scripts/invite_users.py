@@ -96,11 +96,20 @@ def read_emails_from_csv(csv_path: str, email_column: Optional[str] = None) -> l
     return emails
 
 
+VALID_ROLES = [
+    "VISITOR", "AGENT_USER", "CUSTOMER_USER", "CUSTOMER_INTERNAL_USER",
+    "CONTEXTUAL_STAFF_USER", "CONTEXTUAL_EXTERNAL_STAFF_USER",
+    "CONTEXTUAL_INTERNAL_STAFF_USER", "TENANT_ADMIN", "CUSTOMER_ADMIN",
+    "CONTEXTUAL_ADMIN", "SUPER_ADMIN", "SERVICE_ACCOUNT",
+]
+
+
 def invite_users(
     api_key: str,
     tenant_short_name: str,
     emails: list[str],
     is_admin: bool = False,
+    roles: list[str] | None = None,
     batch_size: int = 50
 ) -> dict:
     """
@@ -111,6 +120,7 @@ def invite_users(
         tenant_short_name: The tenant's short name
         emails: List of email addresses to invite
         is_admin: Whether to grant admin privileges (default: False)
+        roles: List of system roles to assign (e.g., AGENT_USER)
         batch_size: Number of users to invite per request (default: 50)
 
     Returns:
@@ -129,15 +139,15 @@ def invite_users(
         batch = emails[i:i + batch_size]
         print(f"Processing batch {i // batch_size + 1} ({len(batch)} users)...")
 
+        user_entry = lambda email: {
+            "email": email,
+            "is_tenant_admin": is_admin,
+            **({"roles": roles} if roles else {}),
+        }
+
         payload = {
             "tenant_short_name": tenant_short_name,
-            "new_users": [
-                {
-                    "email": email,
-                    "is_tenant_admin": is_admin
-                }
-                for email in batch
-            ]
+            "new_users": [user_entry(email) for email in batch]
         }
 
         try:
@@ -193,6 +203,11 @@ def main():
         help="Grant admin privileges to invited users"
     )
     parser.add_argument(
+        "--role", "-r",
+        action="append",
+        help="Role to assign (can be specified multiple times). System roles: " + ", ".join(VALID_ROLES) + ". Custom workspace roles may also work."
+    )
+    parser.add_argument(
         "--dry-run", "-n",
         action="store_true",
         help="Print emails without actually inviting"
@@ -225,12 +240,15 @@ def main():
     print(f"\nInviting users to tenant: {args.tenant}")
     if args.admin:
         print("Note: Users will be granted admin privileges")
+    if args.role:
+        print(f"Roles: {', '.join(args.role)}")
 
     result = invite_users(
         api_key=api_key,
         tenant_short_name=args.tenant,
         emails=emails,
-        is_admin=args.admin
+        is_admin=args.admin,
+        roles=args.role,
     )
 
     # Print results
