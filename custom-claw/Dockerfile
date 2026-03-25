@@ -11,8 +11,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY scrape.py .
-COPY telegram_sec_bot.py .
-COPY telegram_bot.py .
+COPY src/scrape.py .
+COPY src/telegram_sec_bot.py .
+COPY src/telegram_bot.py .
 
 CMD ["python", "scrape.py"]

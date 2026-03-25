@@ -7,27 +7,27 @@ An automated SEC filing monitor powered by OpenClaw and [Contextual AI](https://
 ## Architecture
 
 ```
-┌─────────────────────┐       ┌──────────────────────────┐
-│  OpenClaw (Docker)  │──────▶│   Contextual AI (Cloud)  │
-│  - EDGAR RSS feeds  │ PDF   │   - Datastore (indexed)  │
-│  - Brave Search     │ upload│   - RAG Agent             │
-│    (optional)       │       └──────────┬───────────────┘
-│  - PDF conversion   │                  │ query
-│  - Daily schedule   │
-└─────────────────────┘
-                                         ▼
-                              ┌─────────────────────────┐
-                              │  Notebook (your machine) │
-                              │  - On-demand analysis    │
-                              │  - Interactive questions  │
-                              └──────────┬───────────────┘
-                                         │ optional
-                                         ▼
-                              ┌─────────────────────────┐
-                              │  Telegram Bot            │
-                              │  - Daily briefings       │
-                              │  - Alerts to your phone  │
-                              └─────────────────────────┘
++--------------------+          +-------------------------+
+| Scraper (Docker)   |-- PDF -->| Contextual AI (Cloud)   |
+| - EDGAR RSS feeds  |  upload  | - Datastore (indexed)   |
+| - Brave Search     |          | - RAG Agent             |
+| - PDF conversion   |          +------------+------------+
+| - Daily schedule   |                       |
++--------------------+                       | query
+                                             |
+                   +-------------------------+-------------------------+
+                   |                         |                         |
+                   v                         v                         v
+     +------------------+     +------------------+     +------------------+
+     | Notebook         |     | Custom Claw      |     | OpenClaw         |
+     |                  |     |                  |     |                  |
+     | - On-demand      |     | - ~230 lines     |     | - Framework      |
+     |   analysis       |     | - ChatGPT +      |     | - 50+ skills     |
+     | - RAG vs LLM     |     |   function call  |     | - Memory         |
+     |   comparison     |     | - Telegram bot   |     | - Dashboard      |
+     +------------------+     +------------------+     +------------------+
+                                   Part 4                   Part 5
+                              "Build it yourself"      "Use a framework"
 ```
 
 ---
@@ -119,14 +119,15 @@ The notebook uses `sudo docker-compose` for all Docker commands since the `coder
 
 ### 6. Run the notebook
 
-Open `sec.ipynb` in VS Code (or Jupyter) and run through the parts in order:
+Open `openclaw_hackday.ipynb` in VS Code (or Jupyter) and run through the parts in order:
 
 | Part | What it does | Run when |
 |------|-------------|----------|
 | **Part 1** | Creates the Contextual AI datastore and agent | Once (first time setup) |
-| **Part 2** | Builds and launches the OpenClaw Docker container | Each session |
-| **Part 3** | Agent queries + ChatGPT comparison | Demo showcase |
-| **Part 4** | Telegram integration (4a: one-shot, 4b: SEC chat bot, 4c: full OpenClaw agent) | Optional |
+| **Part 2** | Builds and launches the Custom Claw Docker container (scraper) | Each session |
+| **Part 3** | Agent queries + ChatGPT comparison (Fair Fight / Unfair Fight) | Demo showcase |
+| **Part 4** | Telegram integration with Custom Claw (one-shot → SEC bot → full agent) | Optional |
+| **Part 5** | Switch to OpenClaw framework (one-click switcher → configure → test) | Optional |
 
 ---
 
@@ -191,26 +192,51 @@ The cell queries the agent for a summary and sends it to your phone.
 
 ---
 
+## Two Agent Versions
+
+This project includes two ways to build the same SEC filing agent — showing the progression from "build it yourself" to "use a framework."
+
+### Custom Claw — Build It Yourself
+~230 lines of Python. ChatGPT + function calling + a Telegram polling loop. You can read every line and understand exactly what it does. No memory, no dashboard, no multi-channel — but it proves the concept.
+
+### OpenClaw — Use a Framework
+The [OpenClaw](https://github.com/openclaw/openclaw) agent framework running in Docker. Same Contextual AI backend, but with persistent memory, 50+ built-in skills, a web dashboard, multi-channel support (Telegram, Discord, Slack, WhatsApp), cron scheduling, and more. Custom skills are defined as Markdown files — no Python needed.
+
+Both versions use the same Contextual AI datastore and agent. Part 5 of the notebook handles the switch automatically.
+
+---
+
 ## Project Structure
 
 ```
 sec_demo/
-├── sec.ipynb              # Main notebook — setup, launch, query
-├── docker-compose.yml     # Container orchestration for OpenClaw
-├── requirements.txt       # Python deps for the notebook
-├── example.env            # Template for API keys (safe to commit)
-├── .env                   # Your actual keys (git-ignored)
+├── openclaw_hackday.ipynb                  # Main notebook — Parts 1-5 (everything)
+├── docker-compose.yml         # Container orchestration for Custom Claw
+├── requirements.txt           # Python deps for the notebook
+├── example.env                # Template for API keys (safe to commit)
+├── .env                       # Your actual keys (git-ignored)
 ├── .gitignore
 ├── README.md
-├── AGENTS.md              # Codex project context (architecture, APIs, gotchas)
-├── .codex/
-│   └── config.toml        # Codex MCP server config (Context7 for live docs)
-├── telegram_bot.py        # One-shot Telegram briefing script
-├── telegram_sec_bot.py    # Interactive SEC chat bot for Telegram
-└── openclaw/
-    ├── Dockerfile         # Container image definition
-    ├── requirements.txt   # Python deps for the container
-    └── scrape.py          # EDGAR + Brave → PDF → Contextual upload
+│
+├── custom-claw/               # "Build it yourself" agent
+│   ├── src/
+│   │   ├── scrape.py          # EDGAR + Brave → PDF → Contextual AI upload
+│   │   ├── telegram_bot.py    # Full agent (ChatGPT + tools + Telegram)
+│   │   └── telegram_sec_bot.py # SEC-only Telegram bot
+│   ├── Dockerfile
+│   └── requirements.txt
+│
+├── openclaw-agent/            # "Use a framework" agent
+│   ├── skills/
+│   │   ├── brave-search/SKILL.md
+│   │   └── query-sec-filings/SKILL.md
+│   ├── docker-compose.yml
+│   ├── setup.sh
+│   └── example.env
+│
+└── scripts/                   # Admin utilities
+    ├── invite_users.py        # Bulk invite users to Contextual AI tenant
+    └── remove_users.py        # Remove users from tenant
 ```
 
 ---

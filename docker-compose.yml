@@ -1,13 +1,13 @@
 services:
   openclaw:
-    build: ./openclaw
+    build: ./custom-claw
     env_file: .env
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
 
   telegram-bot:
-    build: ./openclaw
+    build: ./custom-claw
     env_file: .env
     environment:
       - PYTHONUNBUFFERED=1

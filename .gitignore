@@ -25,3 +25,6 @@ Thumbs.db
 Content_Engine_Demo_Package/
 sec_copy_local_database.ipynb
 .claude/
+logs/
+openclaw-agent/config/
+openclaw-agent/workspace/
