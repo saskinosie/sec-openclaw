@@ -28,4 +28,8 @@ sec_copy_local_database.ipynb
 logs/
 scripts/invited_users.csv
 openclaw-agent/config/
+openclaw-agent/config-backup*/
 openclaw-agent/workspace/
+
+# Skills (published separately)
+skills/

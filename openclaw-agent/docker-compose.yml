@@ -11,6 +11,9 @@ services:
       - BRAVE_API_KEY=${BRAVE_API_KEY:-}
       - CONTEXTUAL_API_KEY=${CONTEXTUAL_API_KEY:-}
       - AGENT_ID=${AGENT_ID:-}
+      - OPIK_API_KEY=${OPIK_API_KEY:-}
+      - OPIK_PROJECT_NAME=openclaw
+      - OPIK_WORKSPACE=scott-askinosie
     volumes:
       - ./config:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE:-./workspace}:/home/user/workspace
